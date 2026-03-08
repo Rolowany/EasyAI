@@ -22,6 +22,10 @@ class ConnectFour(TwoPlayerGame):
         )
         self.current_player = 1  # player 1 starts.
 
+    def restart(self):
+        self.board = np.zeros_like(self.board)
+        self.current_player = 1  # player 1 starts.
+
     def possible_moves(self):
         return [i for i in range(7) if (self.board[:, i].min() == 0)]
 
@@ -76,18 +80,6 @@ def find_four(board, current_player):
                 streak = 0
             pos = pos + direction
     return False
-
-def testConnectFour():
-    print("Testing Connect Four")
-
-    ai_algo_neg = Negamax(5)
-    ai_algo_sss = SSS(5)
-    game = ConnectFour([AI_Player(ai_algo_neg), AI_Player(ai_algo_sss)])
-    game.play()
-    if game.lose():
-        print("Player %d wins." % (game.opponent_index))
-    else:
-        print("Looks like we have a draw.")
 
 POS_DIR = np.array(
     [[[i, 0], [0, 1]] for i in range(6)]

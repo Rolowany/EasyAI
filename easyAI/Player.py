@@ -2,6 +2,8 @@
 This module implements the Player (Human or AI), which is basically an
 object with an ``ask_move(game)`` method
 """
+import time
+
 try:
     input = raw_input
 except NameError:
@@ -58,6 +60,13 @@ class AI_Player:
         self.AI_algo = AI_algo
         self.name = name
         self.move = {}
+        self.avg_times = []
 
     def ask_move(self, game):
-        return self.AI_algo(game)
+        start = time.time()
+        result = self.AI_algo(game)
+        end = time.time()
+
+        self.avg_times.append(end - start)
+
+        return result

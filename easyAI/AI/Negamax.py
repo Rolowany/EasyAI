@@ -4,6 +4,7 @@ and (optionnally), transposition tables.
 """
 
 import pickle
+import time
 
 LOWERBOUND, EXACT, UPPERBOUND = -1, 0, 1
 inf = float("infinity")
@@ -170,7 +171,6 @@ class Negamax:
         """
         Returns the AI's best move given the current state of the game.
         """
-
         scoring = (
             self.scoring if self.scoring else (lambda g: g.scoring())
         )  # horrible hack
@@ -184,4 +184,5 @@ class Negamax:
             +self.win_score,
             self.tt,
         )
+
         return game.ai_move

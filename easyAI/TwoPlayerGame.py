@@ -1,6 +1,6 @@
-from abc import ABC, abstractclassmethod
+from abc import ABC, abstractmethod
 from copy import deepcopy
-
+import time
 
 class TwoPlayerGame(ABC):
     """
@@ -68,16 +68,20 @@ class TwoPlayerGame(ABC):
 
     """
 
-    @abstractclassmethod
+    @abstractmethod
     def possible_moves(self):
         pass
 
-    @abstractclassmethod
+    @abstractmethod
     def make_move(self, move):
         pass
 
-    @abstractclassmethod
+    @abstractmethod
     def is_over(self):
+        pass
+
+    @abstractmethod
+    def restart():
         pass
 
     def play(self, nmoves=1000, verbose=True):
