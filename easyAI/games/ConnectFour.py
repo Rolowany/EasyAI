@@ -13,18 +13,21 @@ class ConnectFour(TwoPlayerGame):
     http://en.wikipedia.org/wiki/Connect_Four
     """
 
-    def __init__(self, players, board=None):
+    def __init__(self, players, board=None, randflag = False):
         self.players = players
         self.board = (
             board
             if (board is not None)
             else (np.array([[0 for i in range(7)] for j in range(6)]))
         )
-        self.current_player = 1  # player 1 starts.
+        self.randflag = randflag
+        self.current_player = random.choice([1,2])
+        self.starting_player = self.current_player
+        # player 1 starts.
 
     def restart(self):
         self.board = np.zeros_like(self.board)
-        self.current_player = 1  # player 1 starts.
+        self.current_player = self.starting_player  # player 1 starts.
 
     def possible_moves(self):
         return [i for i in range(7) if (self.board[:, i].min() == 0)]
@@ -32,7 +35,7 @@ class ConnectFour(TwoPlayerGame):
     def make_move(self, column):
         line = np.argmin(self.board[:, column] != 0)
 
-        if random.random()<= 0.3:
+        if random.random()<= 0.3 and self.randflag:
             plusorminus = random.choice([-1,1])
             line-=plusorminus
 

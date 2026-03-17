@@ -135,6 +135,9 @@ class TwoPlayerGame(ABC):
     @property
     def player(self):
         return self.players[self.current_player - 1]
+    @property
+    def current_player_index(self):
+        return self.current_player
 
     @property
     def opponent(self):

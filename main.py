@@ -24,7 +24,10 @@ def parse_args():
         "--depth", type=int, default=5
     )
     parser.add_argument(
-        "--n_runs", type=int, default=10
+        "--n_runs", type=int, default=100
+    )
+    parser.add_argument(
+        "--probabilistic", type=bool, default=False
     )
 
     return parser.parse_args()
@@ -38,6 +41,7 @@ if __name__ == "__main__":
     second_algo: str = args.second_algo
     depth: int = args.depth
     n_runs: int = args.n_runs
+    probabilistic: bool = args.probabilistic
 
     match first_algo:
         case "negamax":
@@ -56,17 +60,18 @@ if __name__ == "__main__":
 
     match game:
         case "connectFour":
-            game: TwoPlayerGame = ConnectFour([first_player, second_player])
+            game: TwoPlayerGame = ConnectFour([first_player, second_player], randflag=probabilistic)
 
     first_counter: int = 0
-    second_counter: int = 0 
+    second_counter: int = 0
+    starting_player= game.current_player_index
 
     for i in range(n_runs):
         print(f"Run number {i}")
         game.play()
         if game.lose():
             print("Player %d wins." % (game.opponent_index))
-            if game.opponent_index == 2:
+            if game.opponent_index == starting_player:
                 first_counter += 1
             else:
                 second_counter += 1
