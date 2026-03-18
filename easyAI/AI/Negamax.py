@@ -29,6 +29,7 @@ def negamax(game, depth, origDepth, scoring, alpha=+inf, beta=-inf, tt=None):
 
         if lookup["depth"] >= depth:
             flag, value = lookup["flag"], lookup["value"]
+
             if flag == EXACT:
                 if depth == origDepth:
                     game.ai_move = lookup["move"]
@@ -37,11 +38,6 @@ def negamax(game, depth, origDepth, scoring, alpha=+inf, beta=-inf, tt=None):
                 alpha = max(alpha, value)
             elif flag == UPPERBOUND:
                 beta = min(beta, value)
-
-            if alpha >= beta:
-                if depth == origDepth:
-                    game.ai_move = lookup["move"]
-                return value
 
     if (depth == 0) or game.is_over():
         # NOTE: the "depth" variable represents the depth left to recurse into,
@@ -111,6 +107,73 @@ def negamax(game, depth, origDepth, scoring, alpha=+inf, beta=-inf, tt=None):
 
     return bestValue
 
+def basic_negamax(game, depth, origDepth, scoring, tt=None):
+    """
+    Negamax without alpha-beta pruning.
+    Still supports transposition tables.
+    """
+
+    # Transposition table lookup
+    lookup = None if (tt is None) else tt.lookup(game)
+
+    if lookup is not None:
+        if lookup["depth"] >= depth:
+            if depth == origDepth:
+                game.ai_move = lookup["move"]
+            return lookup["value"]
+
+    # Terminal node or depth limit
+    if (depth == 0) or game.is_over():
+        return scoring(game) * (1 + 0.001 * depth)
+
+    # Move ordering (use TT best move first if available)
+    if lookup is not None:
+        possible_moves = game.possible_moves()
+        if lookup["move"] in possible_moves:
+            possible_moves.remove(lookup["move"])
+            possible_moves = [lookup["move"]] + possible_moves
+    else:
+        possible_moves = game.possible_moves()
+
+    state = game
+    best_move = possible_moves[0]
+    if depth == origDepth:
+        state.ai_move = best_move
+
+    bestValue = -float("inf")
+    unmake_move = hasattr(state, "unmake_move")
+
+    for move in possible_moves:
+
+        if not unmake_move:
+            game = state.copy()
+
+        game.make_move(move)
+        game.switch_player()
+
+        value = -negamax(game, depth - 1, origDepth, scoring, tt)
+
+        if unmake_move:
+            game.switch_player()
+            game.unmake_move(move)
+
+        if value > bestValue:
+            bestValue = value
+            best_move = move
+            if depth == origDepth:
+                state.ai_move = move
+
+    # Store in transposition table
+    if tt is not None:
+        tt.store(
+            game=state,
+            depth=depth,
+            value=bestValue,
+            move=best_move,
+            flag=EXACT  # no bounds without alpha-beta
+        )
+
+    return bestValue
 
 class Negamax:
     """
@@ -128,7 +191,11 @@ class Negamax:
     -----------
 
     depth:
-      How many moves in advance should the AI think ?
+      How many moves in advance should the AI think ?_init__(self, depth, scoring=None, win_score=+inf, tt=None):
+        self.scoring = scoring
+        self.depth = depth
+        self.tt = tt
+        self.win_score = win_score
       (2 moves = 1 complete turn)
 
     scoring:
@@ -161,11 +228,12 @@ class Negamax:
 
     """
 
-    def __init__(self, depth, scoring=None, win_score=+inf, tt=None):
+    def __init__(self, depth, pruning: bool = True, scoring=None, win_score=+inf, tt=None):
         self.scoring = scoring
         self.depth = depth
         self.tt = tt
         self.win_score = win_score
+        self.pruning = pruning
 
     def __call__(self, game):
         """
@@ -175,14 +243,23 @@ class Negamax:
             self.scoring if self.scoring else (lambda g: g.scoring())
         )  # horrible hack
 
-        self.alpha = negamax(
-            game,
-            self.depth,
-            self.depth,
-            scoring,
-            -self.win_score,
-            +self.win_score,
-            self.tt,
-        )
+        if self.pruning:
+            self.alpha = negamax(
+                game,
+                self.depth,
+                self.depth,
+                scoring,
+                -self.win_score,
+                +self.win_score,
+                self.tt,
+            )
+        else:
+            self.alpha = basic_negamax(
+                game,
+                self.depth,
+                self.depth,
+                scoring,
+                self.tt
+            )
 
         return game.ai_move
