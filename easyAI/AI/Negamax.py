@@ -151,7 +151,7 @@ def basic_negamax(game, depth, origDepth, scoring, tt=None):
         game.make_move(move)
         game.switch_player()
 
-        value = -negamax(game, depth - 1, origDepth, scoring, tt)
+        value = -basic_negamax(game, depth - 1, origDepth, scoring, tt)
 
         if unmake_move:
             game.switch_player()
