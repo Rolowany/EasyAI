@@ -51,9 +51,9 @@ if __name__ == "__main__":
 
     match second_algo:
         case "negamax":
-            second_ai = Negamax(depth)
+            second_ai = Negamax(depth, pruning=False)
         case "negamax_pruning":
-            first_ai = Negamax(depth, pruning=True)
+            second_ai = Negamax(depth, pruning=True)
 
     first_player = AI_Player(first_ai)
     second_player = AI_Player(second_ai)
